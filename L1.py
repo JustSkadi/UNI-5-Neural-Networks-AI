@@ -86,9 +86,10 @@ print(f"Wagi końcowe: {w_or}, Bias: {b_or}")
 X_and = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y_and = np.array([0, 0, 0, 1])
 w_and, b_and, hist_and, pom2 = uczenie(X_and, y_and)
-print(pom2)
+# print(pom2)
 print(f"Wagi końcowe: {w_and}, Bias: {b_and}")
-# print(f"AND: {h_and}")
+for i in range (len(hist_and)):
+    print(f"{hist_and[i]}\n")
 
 # NOT
 X_not = np.array([[0], [1]])
@@ -102,9 +103,11 @@ print(f"Wagi końcowe: {w_not}, Bias: {b_not}")
 X_xor = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y_xor = np.array([0, 1, 1, 0])
 w_xor, b_xor, hist_xor, pom2 = uczenie(X_xor, y_xor)
-print(pom2)
-print(f"Wagi końcowe: {w_xor}, Bias: {b_xor}")
+# print(pom2)
+# print(f"Wagi końcowe: {w_xor}, Bias: {b_xor}")
 # print(f"XOR: {h_xor}")
+for i in range (len(hist_xor)):
+    print(f"{hist_xor[i]}\n")
 """
 XOR ( Albo ) się nie da, bo nie da się podzielić wyjść jedną linią na 2 kategorie ( JAK SIĘ ROZRYSUJE NA WYKRESIE TO WIDAĆ )
 """
@@ -124,6 +127,7 @@ tych formuł logicznych, których nie udało się zrealizować za pomocą pojedy
 # Zamiast sieci jednowarstowoej, robimy dwu ( 2 perceptrony zamiast 1 )
 class XOR:
     def __init__(self):
+        # Działający przykład:
         self.w1_wukryta = np.array([[1, 1], [1, 1]])
         self.b1_wukryta = np.array([-0.5, -1.5])
         
