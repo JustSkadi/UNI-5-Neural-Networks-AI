@@ -78,8 +78,8 @@ def uczenie(X, y):
 X_or = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y_or = np.array([0, 1, 1, 1])
 w_or, b_or, hist_or, pom2 = uczenie(X_or, y_or)
-print(pom2)
-print(f"Wagi końcowe: {w_or}, Bias: {b_or}")
+# print(pom2)
+# print(f"Wagi końcowe: {w_or}, Bias: {b_or}")
 # print(f"OR: {h_or}")
 
 # AND
@@ -87,16 +87,16 @@ X_and = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 y_and = np.array([0, 0, 0, 1])
 w_and, b_and, hist_and, pom2 = uczenie(X_and, y_and)
 # print(pom2)
-print(f"Wagi końcowe: {w_and}, Bias: {b_and}")
-for i in range (len(hist_and)):
-    print(f"{hist_and[i]}\n")
+# print(f"Wagi końcowe: {w_and}, Bias: {b_and}")
+# for i in range (len(hist_and)):
+#     print(f"{hist_and[i]}\n")
 
 # NOT
 X_not = np.array([[0], [1]])
 y_not = np.array([1, 0])
 w_not, b_not, hist_not, pom2 = uczenie(X_not, y_not)
-print(pom2)
-print(f"Wagi końcowe: {w_not}, Bias: {b_not}")
+# print(pom2)
+# print(f"Wagi końcowe: {w_not}, Bias: {b_not}")
 # print(f"NOT: {h_not}")
 
 # XOR
@@ -106,8 +106,8 @@ w_xor, b_xor, hist_xor, pom2 = uczenie(X_xor, y_xor)
 # print(pom2)
 # print(f"Wagi końcowe: {w_xor}, Bias: {b_xor}")
 # print(f"XOR: {h_xor}")
-for i in range (len(hist_xor)):
-    print(f"{hist_xor[i]}\n")
+# for i in range (len(hist_xor)):
+#     print(f"{hist_xor[i]}\n")
 """
 XOR ( Albo ) się nie da, bo nie da się podzielić wyjść jedną linią na 2 kategorie ( JAK SIĘ ROZRYSUJE NA WYKRESIE TO WIDAĆ )
 """
@@ -121,36 +121,53 @@ Pierwsze dwie iteracje każdego uczenia (z zadania nr 2) wykonaj samodzielnie, n
 
 """
 Zadanie 4
-Zaprojekuj i zaimplementuj sztuczną sieć neuronową umożliwiającą poprawną realizację
+Zaprojektuj i zaimplementuj sztuczną sieć neuronową umożliwiającą poprawną realizację
 tych formuł logicznych, których nie udało się zrealizować za pomocą pojedynczego perceptronu.
 """
-# Zamiast sieci jednowarstowoej, robimy dwu ( 2 perceptrony zamiast 1 )
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
 class XOR:
     def __init__(self):
-        # Działający przykład:
-        self.w1_wukryta = np.array([[1, 1], [1, 1]])
-        self.b1_wukryta = np.array([-0.5, -1.5])
-        
-        self.w2_wwyjsc = np.array([1, -1])
-        self.b2_wwyjsc = -0.5
+        np.random.seed(42)
+        self.w1 = np.random.randn(2, 2) * 0.5
+        self.b1 = np.random.randn(2) * 0.5
+        self.w2 = np.random.randn(2) * 0.5
+        self.b2 = np.random.randn() * 0.5
     
-    def forward(self, X):
-        n_ukryta = np.dot(X, self.w1_wukryta.T) + self.b1_wukryta
-        out_ukryta = (n_ukryta > 0).astype(int)
+    def f(self, x):
+        suma1 = np.dot(x, self.w1) + self.b1
+        self.h = sigmoid(suma1)
         
-        n_wyjsc = np.dot(out_ukryta, self.w2_wwyjsc) + self.b2_wwyjsc
-        out_wyjsc = (n_wyjsc > 0).astype(int)
-
-        return out_wyjsc
-
+        suma2 = np.dot(self.h, self.w2) + self.b2
+        y = sigmoid(suma2)
+        return y
+    
+    def train(self, X, y, epochs=10000, eta=1.0):
+        for epoch in range(epochs):
+            for i in range(len(X)):
+                out = self.f(X[i])
+                blad = y[i] - out
+                
+                # popraw wagi
+                delta2 = blad * out * (1 - out)
+                self.w2 += eta * delta2 * self.h
+                self.b2 += eta * delta2
+                
+                delta1 = delta2 * self.w2 * self.h * (1 - self.h)
+                self.w1 += eta * np.outer(X[i], delta1)
+                self.b1 += eta * delta1
 siec = XOR()
+siec.train(X_xor, y_xor, epochs=10000, eta=1.0)
+print("\nWYNIKI:")
 for i in range(len(X_xor)):
-    wynik = siec.forward(X_xor[i:i+1])
-    print(f"x = {X_xor[i]}, oczekiwane = {y_xor[i]}, otrzymane = {wynik[0]}")
+    wynik = siec.f(X_xor[i])
+    predykcja = 1 if wynik >= 0.5 else 0
+    print(f"x = {X_xor[i]}, oczekiwane = {y_xor[i]}, wyjście = {wynik:.4f}, predykcja = {predykcja}")
 
 """
 Zadanie 5
-Zaprojekuj inne zbiory wartości, których kształtna klasyfikacja nie jest możliwa
+Zaprojektuj inne zbiory wartości, których kształtna klasyfikacja nie jest możliwa
 z wykorzystaniem pojedynczego perceptronu. Wyciąg uzasadnij.
 """
 def inny():
