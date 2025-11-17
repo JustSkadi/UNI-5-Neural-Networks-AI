@@ -1,181 +1,170 @@
 import numpy as np
-import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+"""
+1.1 Zadanie nr 1
+W języku programowania wybranym przez prowadzącego (np. Matlab lub Python) zaimplemen-
+tuj sztuczną sieć neuronową z warstwą ukrytą, z N wejściami i M wyjściami.
+
+1.2 Zadanie nr 2
+Zaimplementuj algorytm uczenia z propagacją wsteczną dla kryterium zadanego przez prowa-
+dzącego.
+Implementację poprzyj wyprowadzeniami na kartce.
+"""
+def sigmoid(x):
+    return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
 
 class SiecNeuronowa:
-    def __init__(self, n_wejsc, n_ukrytych, n_wyjsc):
-        self.n_wejsc = n_wejsc
-        self.n_ukrytych = n_ukrytych
-        self.n_wyjsc = n_wyjsc
-        
-        # inicjalizacja wag małymi losowymi wartosciami
-        self.w1 = np.random.randn(n_wejsc, n_ukrytych) * 0.5
-        self.b1 = np.random.randn(n_ukrytych) * 0.5
-        self.w2 = np.random.randn(n_ukrytych, n_wyjsc) * 0.5
-        self.b2 = np.random.randn(n_wyjsc) * 0.5
-        
-    def sigmoid(self, x):
-        return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
-    
-    def sigmoid_pochodna(self, x):
-        s = self.sigmoid(x)
-        return s * (1 - s)
+    def __init__(self, n_IN, n_H, n_OUT):
+        self.n_IN = n_IN
+        self.n_H = n_H
+        self.n_OUT = n_OUT
+        self.w1 = np.random.randn(n_IN, n_H) * 0.5
+        self.b1 = np.random.randn(n_H) * 0.5
+        self.w2 = np.random.randn(n_H, n_OUT) * 0.5
+        self.b2 = np.random.randn(n_OUT) * 0.5
     
     def forward(self, X):
-        # warstwa ukryta
-        self.z1 = np.dot(X, self.w1) + self.b1
-        self.a1 = self.sigmoid(self.z1)
+        # ukryta
+        self.suma1 = np.dot(X, self.w1) + self.b1
+        self.h = sigmoid(self.suma1)
+        # wyjcsiowa
+        self.suma2 = np.dot(self.h, self.w2) + self.b2
+        self.out = sigmoid(self.suma2)
         
-        # warstwa wyjsciowa
-        self.z2 = np.dot(self.a1, self.w2) + self.b2
-        self.a2 = self.sigmoid(self.z2)
-        
-        return self.a2
+        return self.out
     
-    def backward(self, X, y, wyjscie, lr):
+    def backward(self, X, y, out, eta):
+
         m = X.shape[0]
         
-        # blad warstwy wyjsciowej - kryterium MSE
-        delta2 = (wyjscie - y) * self.sigmoid_pochodna(self.z2)
-        dw2 = np.dot(self.a1.T, delta2) / m
+        # blad wyjsciowej
+        blad_out = out - y
+        delta2 = blad_out * out * (1 - out)
+        dw2 = np.dot(self.h.T, delta2) / m
         db2 = np.sum(delta2, axis=0) / m
-        
-        # blad warstwy ukrytej
-        delta1 = np.dot(delta2, self.w2.T) * self.sigmoid_pochodna(self.z1)
+        # blad ukrytej
+        delta1 = np.dot(delta2, self.w2.T) * self.h * (1 - self.h)
         dw1 = np.dot(X.T, delta1) / m
         db1 = np.sum(delta1, axis=0) / m
         
-        # aktualizacja wag
-        self.w2 -= lr * dw2
-        self.b2 -= lr * db2
-        self.w1 -= lr * dw1
-        self.b1 -= lr * db1
+        self.w2 -= eta * dw2
+        self.b2 -= eta * db2
+        self.w1 -= eta * dw1
+        self.b1 -= eta * db1
     
-    def trenuj(self, X, y, epoki, lr):
-        historia_bledu = []
+    def train(self, X, y, epochs, eta):
+        historia = []
         
-        for epoka in range(epoki):
-            wyjscie = self.forward(X)
-            self.backward(X, y, wyjscie, lr)
+        for epoch in range(epochs):
+            out = self.forward(X)
+            self.backward(X, y, out, eta)
             
-            blad = np.mean((wyjscie - y) ** 2)
-            historia_bledu.append(blad)
+            blad = np.mean((out - y) ** 2)
+            historia.append(blad)
             
-            if epoka % 1000 == 0:
-                print(f"Epoka {epoka}, Blad: {blad:.6f}")
+            if epoch % 1000 == 0:
+                print(f"Epoka {epoch}, Blad: {blad:.6f}")
         
-        return historia_bledu
+        return historia
     
-    def przewiduj(self, X):
-        return self.forward(X)
+"""
+1.3 Zadanie nr 3
+Naucz sieć podstawowych operacji logicznych.
+Naucz, czyli: wybierz postać ciągu uczącego, wybierz wagi początkowe, zaprezentuj wyniki cząst-
+kowe (zbiór uczący, wagi, wartości kryterium, sumy cząstkowe, wyjścia z warstw sieci).
+"""
 
-
-def zadanie_operacje_logiczne():
-    print("\n=== ZADANIE 3: OPERACJE LOGICZNE ===\n")
-    
-    # zbior uczacy dla XOR
+def zad3():
     X = np.array([[0, 0],
                   [0, 1],
                   [1, 0],
                   [1, 1]])
-    
     y_xor = np.array([[0], [1], [1], [0]])
     y_and = np.array([[0], [0], [0], [1]])
     y_or = np.array([[0], [1], [1], [1]])
-    
-    operacje = [
+    op = [
         ("XOR", y_xor),
         ("AND", y_and),
         ("OR", y_or)
     ]
     
-    for nazwa, y in operacje:
-        print(f"\n--- Uczenie operacji {nazwa} ---")
+    for nazwa, y in op:
+        print(f"\n--- {nazwa} ---")
         print(f"Zbior uczacy:\nX:\n{X}\ny:\n{y}")
         
         siec = SiecNeuronowa(2, 4, 1)
-        print(f"\nWagi poczatkowe w1:\n{siec.w1}")
-        print(f"Wagi poczatkowe w2:\n{siec.w2}")
+        print(f"Wagi pocz w1:\n{siec.w1}")
+        print(f"Wagi pocz w2:\n{siec.w2}")
         
-        historia = siec.trenuj(X, y, epoki=5000, lr=0.5)
+        siec.train(X, y, epochs=5000, eta=0.5)
         
-        print(f"\nWagi koncowe w1:\n{siec.w1}")
-        print(f"Wagi koncowe w2:\n{siec.w2}")
+        print(f"Wagi fin w1:\n{siec.w1}")
+        print(f"Wagi fin w2:\n{siec.w2}")
         
-        wyniki = siec.przewiduj(X)
-        print(f"\nWyniki predykcji:")
+        wyniki = siec.forward(X)
         for i in range(len(X)):
-            print(f"Wejscie: {X[i]} -> Wyjscie: {wyniki[i][0]:.4f} (Oczekiwane: {y[i][0]})")
-        
-        plt.figure(figsize=(8, 5))
-        plt.plot(historia)
-        plt.title(f'Blad uczenia - operacja {nazwa}')
-        plt.xlabel('Epoka')
-        plt.ylabel('MSE')
-        plt.grid(True)
-        plt.savefig(f'/mnt/user-data/outputs/blad_{nazwa.lower()}.png')
-        plt.close()
+            print(f"IN: {X[i]} -> OUT: {wyniki[i][0]:.4f} (Oczekiwalam: {y[i][0]})")
 
-
-def zadanie_inny_zbior():
-    print("\n=== ZADANIE 4: KLASYFIKACJA IRIS ===\n")
+"""
+1.4 Zadanie nr 4
+Przygotuj (znajdź) inny zbiór danych. Przeprowadź uczenie sieci na przygotowanym zbiorze
+danych. Zaprezentuj wyniki.
+"""
+def zad4():
+    # Wczytanie zbioru Iris z biblioteki sklearn
+    iris = load_iris()
+    X = iris.data  # wszystkie 4 cechy
+    y_labels = iris.target
     
-    # zbior Iris - uproszczony, 2 cechy, 3 klasy
-    # sepal length, sepal width dla kazdego gatunku
-    X = np.array([
-        [5.1, 3.5], [4.9, 3.0], [4.7, 3.2], [4.6, 3.1], [5.0, 3.6],
-        [7.0, 3.2], [6.4, 3.2], [6.9, 3.1], [5.5, 2.3], [6.5, 2.8],
-        [6.3, 3.3], [5.8, 2.7], [7.1, 3.0], [6.3, 2.9], [6.5, 3.0],
-        [4.9, 2.5], [4.8, 2.6], [5.0, 2.0], [5.2, 2.7], [5.4, 3.0]
-    ])
+    # Kodowanie one-hot dla 3 klas
+    y = np.zeros((len(y_labels), 3))
+    for i, label in enumerate(y_labels):
+        y[i, label] = 1
     
-    # kodowanie one-hot: setosa=[1,0,0], versicolor=[0,1,0], virginica=[0,0,1]
-    y = np.array([
-        [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0],
-        [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0], [0, 1, 0],
-        [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1],
-        [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0]
-    ])
-    
-    print("Zbior danych Iris (wybrane cechy):")
+    print("Zbior danych Iris:")
     print(f"Ksztalt X: {X.shape}, Ksztalt y: {y.shape}")
     print(f"\nPrzykladowe dane:\nX[:3]:\n{X[:3]}\ny[:3]:\n{y[:3]}")
     
-    # normalizacja danych
+    # normalizacja
     X_norm = (X - X.mean(axis=0)) / X.std(axis=0)
     
-    siec = SiecNeuronowa(2, 5, 3)
+    siec = SiecNeuronowa(4, 5, 3)  # 4 wejścia (4 cechy Iris)
     print(f"\nWagi poczatkowe w1:\n{siec.w1}")
     print(f"Wagi poczatkowe w2:\n{siec.w2}")
     
-    historia = siec.trenuj(X_norm, y, epoki=10000, lr=0.3)
+    # Punkty kontrolne do wyświetlenia błędu
+    punkty_kontrolne = [2500, 5000, 7500, 10000]
+    epochs_total = 10000
+    
+    print("\n--- Wartosci bledu w wybranych punktach ---")
+    for epoch in range(epochs_total):
+        out = siec.forward(X_norm)
+        siec.backward(X_norm, y, out, eta=0.3)
+        
+        if (epoch + 1) in punkty_kontrolne:
+            blad = np.mean((out - y) ** 2)
+            print(f"Epoka {epoch + 1}: Blad MSE = {blad:.6f}")
     
     print(f"\nWagi koncowe w1:\n{siec.w1}")
     print(f"Wagi koncowe w2:\n{siec.w2}")
     
-    wyniki = siec.przewiduj(X_norm)
-    przewidziane_klasy = np.argmax(wyniki, axis=1)
-    prawdziwe_klasy = np.argmax(y, axis=1)
+    wyniki = siec.forward(X_norm)
+    przewidziane = np.argmax(wyniki, axis=1)
+    prawdziwe = np.argmax(y, axis=1)
     
-    dokladnosc = np.mean(przewidziane_klasy == prawdziwe_klasy)
+    dokladnosc = np.mean(przewidziane == prawdziwe)
     print(f"\nDokladnosc klasyfikacji: {dokladnosc * 100:.2f}%")
     
     print("\nPrzykladowe predykcje:")
-    nazwy_klas = ["Setosa", "Versicolor", "Virginica"]
-    for i in range(0, len(X), 5):
-        print(f"Probka {i}: Przewidziana klasa: {nazwy_klas[przewidziane_klasy[i]]}, "
-              f"Prawdziwa klasa: {nazwy_klas[prawdziwe_klasy[i]]}")
-    
-    plt.figure(figsize=(8, 5))
-    plt.plot(historia)
-    plt.title('Blad uczenia - klasyfikacja Iris')
-    plt.xlabel('Epoka')
-    plt.ylabel('MSE')
-    plt.grid(True)
-    plt.savefig('/mnt/user-data/outputs/blad_iris.png')
-    plt.close()
+    nazwy = ["Setosa", "Versicolor", "Virginica"]
+    for i in range(0, len(X), 30):
+        print(f"Probka {i}: Przewidziana: {nazwy[przewidziane[i]]}, "
+              f"Prawdziwa: {nazwy[prawdziwe[i]]}")
 
 
 if __name__ == "__main__":
-    zadanie_operacje_logiczne()
-    zadanie_inny_zbior()
-    print("\nWykresy zapisane w /mnt/user-data/outputs/")
+    print(f"Zadanie 3:\n")
+    zad3()
+    print(f"\n{'-'*80}\n")
+    # print(f"Zadanie 4:\n")
+    # zad4()
