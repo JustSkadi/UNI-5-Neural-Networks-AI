@@ -24,49 +24,39 @@ class SiecNeuronowa:
         self.b2 = np.random.randn(n_OUT) * 0.5
     
     def forward(self, X):
-        # ukryta
         self.suma1 = np.dot(X, self.w1) + self.b1
-        self.h = sigmoid(self.suma1)
-        # wyjcsiowa
+        self.h = sigmoid(self.suma1) # aktywacja wartw ukrytych
         self.suma2 = np.dot(self.h, self.w2) + self.b2
-        self.out = sigmoid(self.suma2)
-        
+        self.out = sigmoid(self.suma2) # predykcja
         return self.out
     
+    # https://www.geeksforgeeks.org/machine-learning/backpropagation-in-neural-network/
     def backward(self, X, y, out, eta):
-
-        m = X.shape[0]
+        E_local = out - y
+        # gradient lokalny, wag i biasów out
+        delta2 = E_local * out * (1 - out)
+        dw2 = np.dot(self.h.T, delta2)
+        db2 = np.sum(delta2, axis=0)
         
-        # blad wyjsciowej
-        blad_out = out - y
-        delta2 = blad_out * out * (1 - out)
-        dw2 = np.dot(self.h.T, delta2) / m
-        db2 = np.sum(delta2, axis=0) / m
-        # blad ukrytej
+        # ukryta
         delta1 = np.dot(delta2, self.w2.T) * self.h * (1 - self.h)
-        dw1 = np.dot(X.T, delta1) / m
-        db1 = np.sum(delta1, axis=0) / m
+        dw1 = np.dot(X.T, delta1)
+        db1 = np.sum(delta1, axis=0)
         
+        # zmiana wag i biasów
         self.w2 -= eta * dw2
         self.b2 -= eta * db2
         self.w1 -= eta * dw1
         self.b1 -= eta * db1
     
     def train(self, X, y, epochs, eta):
-        historia = []
-        
         for epoch in range(epochs):
             out = self.forward(X)
             self.backward(X, y, out, eta)
-            
-            blad = np.mean((out - y) ** 2)
-            historia.append(blad)
-            
             if epoch % 1000 == 0:
-                print(f"Epoka {epoch}, Blad: {blad:.6f}")
+                mse = np.mean((out - y) ** 2)
+                print(f"Epoka {epoch}, Blad: {mse:.6f}")
         
-        return historia
-    
 """
 1.3 Zadanie nr 3
 Naucz sieć podstawowych operacji logicznych.
@@ -90,8 +80,6 @@ def zad3():
     
     for nazwa, y in op:
         print(f"\n--- {nazwa} ---")
-        print(f"Zbior uczacy:\nX:\n{X}\ny:\n{y}")
-        
         siec = SiecNeuronowa(2, 4, 1)
         print(f"Wagi pocz w1:\n{siec.w1}")
         print(f"Wagi pocz w2:\n{siec.w2}")
@@ -111,60 +99,38 @@ Przygotuj (znajdź) inny zbiór danych. Przeprowadź uczenie sieci na przygotowa
 danych. Zaprezentuj wyniki.
 """
 def zad4():
-    # Wczytanie zbioru Iris z biblioteki sklearn
     iris = load_iris()
-    X = iris.data  # wszystkie 4 cechy
+    X = iris.data
     y_labels = iris.target
-    
-    # Kodowanie one-hot dla 3 klas
     y = np.zeros((len(y_labels), 3))
+    # one hot encoding - zamiana etykiet na wektor binarny dla wyjsc
     for i, label in enumerate(y_labels):
         y[i, label] = 1
+    X_norm = (X - X.mean(axis=0)) / X.std(axis=0) # 0 1
     
-    print("Zbior danych Iris:")
-    print(f"Ksztalt X: {X.shape}, Ksztalt y: {y.shape}")
-    print(f"\nPrzykladowe dane:\nX[:3]:\n{X[:3]}\ny[:3]:\n{y[:3]}")
+    siec = SiecNeuronowa(4, 5, 3) # 4 cechy 3 klasy
+    print(f"Wagi pocz w1:\n{siec.w1}")
+    print(f"Wagi pocz w2:\n{siec.w2}")
     
-    # normalizacja
-    X_norm = (X - X.mean(axis=0)) / X.std(axis=0)
+    siec.train(X_norm, y, epochs=10000, eta=0.3)
     
-    siec = SiecNeuronowa(4, 5, 3)  # 4 wejścia (4 cechy Iris)
-    print(f"\nWagi poczatkowe w1:\n{siec.w1}")
-    print(f"Wagi poczatkowe w2:\n{siec.w2}")
-    
-    # Punkty kontrolne do wyświetlenia błędu
-    punkty_kontrolne = [2500, 5000, 7500, 10000]
-    epochs_total = 10000
-    
-    print("\n--- Wartosci bledu w wybranych punktach ---")
-    for epoch in range(epochs_total):
-        out = siec.forward(X_norm)
-        siec.backward(X_norm, y, out, eta=0.3)
-        
-        if (epoch + 1) in punkty_kontrolne:
-            blad = np.mean((out - y) ** 2)
-            print(f"Epoka {epoch + 1}: Blad MSE = {blad:.6f}")
-    
-    print(f"\nWagi koncowe w1:\n{siec.w1}")
-    print(f"Wagi koncowe w2:\n{siec.w2}")
+    print(f"Wagi fin w1:\n{siec.w1}")
+    print(f"Wagi fin w2:\n{siec.w2}")
     
     wyniki = siec.forward(X_norm)
     przewidziane = np.argmax(wyniki, axis=1)
     prawdziwe = np.argmax(y, axis=1)
-    
     dokladnosc = np.mean(przewidziane == prawdziwe)
-    print(f"\nDokladnosc klasyfikacji: {dokladnosc * 100:.2f}%")
+    print(f"Dokladnosc klasyfikacji: {dokladnosc * 100:.2f}%\n")
     
-    print("\nPrzykladowe predykcje:")
     nazwy = ["Setosa", "Versicolor", "Virginica"]
     for i in range(0, len(X), 30):
         print(f"Probka {i}: Przewidziana: {nazwy[przewidziane[i]]}, "
               f"Prawdziwa: {nazwy[prawdziwe[i]]}")
 
-
 if __name__ == "__main__":
-    print(f"Zadanie 3:\n")
-    zad3()
+    # print(f"Zadanie 3:\n")
+    # zad3()
     print(f"\n{'-'*80}\n")
-    # print(f"Zadanie 4:\n")
-    # zad4()
+    print(f"Zadanie 4:\n")
+    zad4()
