@@ -1,0 +1,21 @@
+Trening z learning_rate = 1e-05
+  0%|                                                                                                                                                                                                          | 0/26 [00:00<?, ?it/s]c:\Users\kazwe\OneDrive\Pulpit\IT\GitHub\UNI-5-Neural-Networks-AI\venv\Lib\site-packages\torch\utils\data\dataloader.py:668: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+`loss_type=None` was set in the config but it is unrecognized. Using the default loss: `ForCausalLMLoss`.
+{'train_runtime': 489.4209, 'train_samples_per_second': 0.817, 'train_steps_per_second': 0.053, 'train_loss': 7.077386709359976, 'epoch': 2.0}
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 26/26 [08:09<00:00, 18.82s/it] 
+Final loss: 7.077386709359976
+
+Trening z learning_rate = 0.0002
+  0%|                                                                                                                                                                                                          | 0/26 [00:00<?, ?it/s]c:\Users\kazwe\OneDrive\Pulpit\IT\GitHub\UNI-5-Neural-Networks-AI\venv\Lib\site-packages\torch\utils\data\dataloader.py:668: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+{'train_runtime': 528.258, 'train_samples_per_second': 0.757, 'train_steps_per_second': 0.049, 'train_loss': 1.9989100236159105, 'epoch': 2.0}
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 26/26 [08:48<00:00, 20.32s/it] 
+Final loss: 1.9989100236159105
+
+Trening z learning_rate = 0.0005
+  0%|                                                                                                                                                                                                          | 0/26 [00:00<?, ?it/s]c:\Users\kazwe\OneDrive\Pulpit\IT\GitHub\UNI-5-Neural-Networks-AI\venv\Lib\site-packages\torch\utils\data\dataloader.py:668: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  warnings.warn(warn_msg)
+{'train_runtime': 553.3197, 'train_samples_per_second': 0.723, 'train_steps_per_second': 0.047, 'train_loss': 0.5366084025456355, 'epoch': 2.0}
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 26/26 [09:13<00:00, 21.28s/it] 
+Final loss: 0.5366084025456355
