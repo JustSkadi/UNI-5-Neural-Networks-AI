@@ -72,7 +72,7 @@ class GA:
         
         probs = [s / sum_fitness for s in scores_adj] # normalizacja sumy prawdopodobieństw do 1
         idx = random.choices(range(len(pop)), weights=probs, k=1)[0] # losowanie osobnika
-        return pop[idx]
+        return pop[idx], probs[idx]
     
     def krzyz(self, p1, p2):
         if random.random() < self.p_cross: # robimy?
@@ -110,8 +110,8 @@ class GA:
                 new_pop.append(pop[best_idx][:])
             
             while len(new_pop) < self.pop_size:
-                p1 = self.ruletka(pop, scores)
-                p2 = self.ruletka(pop, scores)
+                p1, w1 = self.ruletka(pop, scores)
+                p2, w2 = self.ruletka(pop, scores)
                 c1, c2 = self.krzyz(p1, p2)
                 c1 = self.mutate(c1)
                 c2 = self.mutate(c2)
@@ -120,6 +120,7 @@ class GA:
                 if len(new_pop) < self.pop_size:
                     new_pop.append(c2)
             
+            print(f"Rodzice: {p1} , {p2}, {w1} , {w2}")
             pop = new_pop
         
         elapsed = time.time() - start
@@ -140,7 +141,7 @@ class GA:
 
 
 def test_params():
-    for size in [3, 10, 30, 70]:
+    for size in [3]: # 10, 30, 70
         ga = GA(
             pop_size=size,
             chrom_len=10,
@@ -216,7 +217,7 @@ def test_params():
         print(f"Wartosc funkcji: {result['best_val']:.4f}")
     
     print("\n")
-    for gen in [5, 15, 40, 80]:
+    for gen in [5]: #  15, 40, 80
         ga = GA(
             pop_size=20,
             chrom_len=10,
@@ -231,6 +232,6 @@ def test_params():
         print(f"Wartosc funkcji: {result['best_val']:.4f}")
 
 if __name__ == "__main__":
-    plot_function()
-    print("\n")
+    # plot_function()
+    # print("\n")
     test_params()
